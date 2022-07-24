@@ -14,7 +14,6 @@ function ImagePopup({ card, onClose }) {
                 <img alt={card.name} src={card.link} className="popup__photo" />
                 <h2 className="popup__description">{card.name}</h2>
             </div>
-            <div className="popup__overlay"></div>
         </div>
     );
 }

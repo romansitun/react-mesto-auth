@@ -28,7 +28,7 @@ export default function Register({ onRegister }) {
             <h1 className="register__title">Регистрация</h1>
             <input required className="register__email-input" placeholder="Email" id="email" name="email" type="email" value={profileData.email} onChange={handleChange}></input>
             <input required className="register__password-input" placeholder="Пароль" id="password" name="password" type="password" value={profileData.password} onChange={handleChange}></input>
-            <button type="submit" onSubmit={handleSubmit} className="register__button">Зарегистрироваться</button>
+            <button type="submit" className="register__button">Зарегистрироваться</button>
             <Link to="sign-in" className="register__link">Уже зарегистрированы? Войти</Link>
         </form>
     )

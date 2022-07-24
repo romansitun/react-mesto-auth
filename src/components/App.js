@@ -58,9 +58,9 @@ function App() {
   }, []);
 
 
-  function handleLogin() {
-    setLoggedIn(true)
-  }
+  // function handleLogin() {
+  //   setLoggedIn(true)
+  // }
 
   const history = useHistory();
 
@@ -69,14 +69,17 @@ function App() {
     const jwt = localStorage.getItem('jwt');
     if (jwt) {
       // проверим токен
-      auth.getContent(jwt).then((res) => {
-        if (res) {
-          setProfileEmail(res.data.email)
-          // авторизуем пользователя
-          setLoggedIn(true)
-          history.push('/');
-        }
-      });
+      auth.checkToken(jwt)
+        .then((res) => {
+          if (res) {
+            setProfileEmail(res.data.email)
+            setLoggedIn(true)
+            history.push('/');
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   }, [history]);
 
@@ -99,8 +102,7 @@ function App() {
     setIsLoading(true)
     // Отправляем запрос в API и получаем обновлённые данные карточки
     api.deleteCard(card._id).then(() => {
-      const newCards = cards.filter(newCard => newCard._id !== card._id)
-      setCards(newCards);
+      setCards((state) => state.filter((item) => item._id !== card._id));
       closeAllPopups();
     })
       .catch((err) => {
@@ -159,6 +161,22 @@ function App() {
     setIsConfirmDeletePopup(false);
     setIsInfoTooltipOpen(false);
   }
+
+  const isOpen = isInfoTooltipOpen || isEditAvatarPopupOpen || isEditProfilePopupOpen || isAddPlacePopupOpen || selectedCard.link;
+
+  React.useEffect(() => {
+    function closeByEscape(evt) {
+      if (evt.key === 'Escape') {
+        closeAllPopups();
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('keydown', closeByEscape);
+      return () => {
+        document.removeEventListener('keydown', closeByEscape);
+      }
+    }
+  }, [isOpen])
 
   function handleUpdateUser(data) {
     setIsLoading(true)
@@ -228,6 +246,23 @@ function App() {
       })
   }
 
+  function handleLogin({ email, password }) {
+    auth.authorize(email, password)
+      .then((data) => {
+
+        if (data.token) {
+          setProfileEmail(email);
+          setLoggedIn(true);
+          history.push('/');
+
+        }
+      })
+      .catch(err => {
+        console.log(err)
+        openInfoTooltip();
+      }); // запускается, если пользователь не найден
+  }
+
 
 
   return (
@@ -249,7 +284,7 @@ function App() {
             onCardDelete={handleConfirmDeleteClick} />
 
           <Route path="/sign-in">
-            <Login handleLogin={handleLogin} openInfoTooltip={openInfoTooltip} />
+            <Login onLogin={handleLogin} openInfoTooltip={openInfoTooltip} />
           </Route>
           <Route path="/sign-up">
             <Register onRegister={handleRegister} />
@@ -259,7 +294,6 @@ function App() {
           </Route>
         </Switch>
         < Footer />
-        <PopupWithForm onLoading={isLoading} />
         <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} onLoading={isLoading} />
         <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} onLoading={isLoading} />
         <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} onLoading={isLoading} />
