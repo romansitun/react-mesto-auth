@@ -10,7 +10,6 @@ import EditAvatarPopup from "./EditAvatarPopup";
 import api from '../utils/Api';
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import ConfirmDeletePopup from "./ConfirmDeletePopup";
-import PopupWithForm from "./PopupWithForm";
 import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
@@ -48,7 +47,8 @@ function App() {
 
 
   React.useEffect(() => {
-    api.getInitialCards()
+    const jwt = localStorage.getItem('jwt');
+    api.getInitialCards(jwt)
       .then((res) => {
         setCards(res);
       })
@@ -72,7 +72,7 @@ function App() {
       auth.checkToken(jwt)
         .then((res) => {
           if (res) {
-            setProfileEmail(res.data.email)
+            setProfileEmail(res.email)
             setLoggedIn(true)
             history.push('/');
           }
@@ -100,8 +100,9 @@ function App() {
 
   function handleCardDelete(card) {
     setIsLoading(true)
+    const jwt = localStorage.getItem('jwt');
     // Отправляем запрос в API и получаем обновлённые данные карточки
-    api.deleteCard(card._id).then(() => {
+    api.deleteCard(card._id, jwt).then(() => {
       setCards((state) => state.filter((item) => item._id !== card._id));
       closeAllPopups();
     })
@@ -116,14 +117,15 @@ function App() {
 
 
   React.useEffect(() => {
-    api.getUserInfo()
+    const jwt = localStorage.getItem('jwt');
+    api.getUserInfo(jwt)
       .then((res) => {
         setCurrentUser(res);
       })
       .catch((err) => {
         console.log(err);
       })
-  }, []);
+  }, [loggedIn]);
 
 
   const handleCardClick = (card) => {
@@ -180,7 +182,8 @@ function App() {
 
   function handleUpdateUser(data) {
     setIsLoading(true)
-    api.editProfile(data)
+    const jwt = localStorage.getItem('jwt');
+    api.editProfile(data, jwt)
       .then((res) => {
         setCurrentUser(res);
         closeAllPopups()
@@ -196,7 +199,8 @@ function App() {
 
   function handleUpdateAvatar(data) {
     setIsLoading(true)
-    api.editAvatar(data)
+    const jwt = localStorage.getItem('jwt');
+    api.editAvatar(data, jwt)
       .then((res) => {
         setCurrentUser(res);
         closeAllPopups()
@@ -230,14 +234,14 @@ function App() {
     history.push('/sign-in');
   }
 
-  function handleRegister({ email, password }) {
+  function handleRegister(email, password) {
     auth.register(email, password)
-      .then(data => {
-        if (data) {
-          setIsRegistrationSuccessful(true);
-          openInfoTooltip();
-          history.push('/sign-in');
-        }
+      .then(() => {
+
+        setIsRegistrationSuccessful(true);
+        openInfoTooltip();
+        history.push('/sign-in');
+
       })
       .catch(err => {
         console.log(err);
