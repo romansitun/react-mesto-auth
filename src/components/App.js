@@ -70,9 +70,9 @@ function App() {
     if (jwt) {
       // проверим токен
       auth.checkToken(jwt)
-        .then((res) => {
-          if (res) {
-            setProfileEmail(res.email)
+        .then((data) => {
+          if (data) {
+            setProfileEmail(data.email)
             setLoggedIn(true)
             history.push('/');
           }
@@ -87,10 +87,11 @@ function App() {
 
   function handleCardLike(card) {
     // Снова проверяем, есть ли уже лайк на этой карточке
-    const isLiked = card.likes.some(i => i._id === currentUser._id);
+    const jwt = localStorage.getItem('jwt');
+    const isLiked = card.likes.some(i => i === currentUser._id);
 
     // Отправляем запрос в API и получаем обновлённые данные карточки
-    api.changeLikeCardStatus(card._id, !isLiked).then((newCard) => {
+    api.changeLikeCardStatus(card._id, !isLiked, jwt).then((newCard) => {
       setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
     })
       .catch((err) => {
@@ -180,10 +181,10 @@ function App() {
     }
   }, [isOpen])
 
-  function handleUpdateUser(data) {
+  function handleUpdateUser(user) {
     setIsLoading(true)
     const jwt = localStorage.getItem('jwt');
-    api.editProfile(data, jwt)
+    api.editProfile(user, jwt)
       .then((res) => {
         setCurrentUser(res);
         closeAllPopups()
