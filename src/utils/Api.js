@@ -150,7 +150,7 @@ class Api {
 
 
 const api = new Api({
-    serverUrl: 'http://localhost:3000/',
+    serverUrl: 'https://api.situnmesto.students.nomoredomains.sbs/',
     headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
